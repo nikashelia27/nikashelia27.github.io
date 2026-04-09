@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nika Shelia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#111; --border:#1e1e1e; --border-hi:#2a2a2a;
+    --text:#e0e0e0; --dim:#555; --mid:#888;
+    --accent:#c8f135; --accent-dim:#7a9420; --accent-glow:rgba(200,241,53,0.08);
+    --purple:#9b59b6;
+    --mono:'DM Mono',monospace; --display:'Bebas Neue',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);}
+  body::before {
+    content:'';
+    position:fixed;inset:0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:48px 48px;
+    opacity:0.4;
+    pointer-events:none;
+    z-index:0;
+  }
+  .page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 32px;height:52px;
+    border-bottom:1px solid var(--border);
+    background:rgba(17,17,17,0.8);
+    backdrop-filter:blur(8px);
+    position:sticky;top:0;z-index:10;
+  }
+  .logo{font-family:var(--display);font-size:22px;letter-spacing:5px;color:var(--accent);}
+  .header-sub{font-size:9px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+  .hero{
+    padding:80px 32px 60px;
+    border-bottom:1px solid var(--border);
+    display:flex;flex-direction:column;gap:16px;
+    animation:fadeUp 0.6s ease both;
+  }
+  .hero-label{font-size:9px;letter-spacing:3px;color:var(--accent-dim);text-transform:uppercase;}
+  .hero-name{
+    font-family:var(--display);font-size:clamp(52px,8vw,96px);
+    letter-spacing:8px;line-height:1;color:var(--text);
+  }
+  .hero-name span{color:var(--accent);}
+  .hero-desc{font-size:11px;color:var(--mid);max-width:480px;line-height:1.8;margin-top:8px;}
+
+  /* projects section */
+  .section{padding:48px 32px;flex:1;}
+  .section-head{
+    display:flex;align-items:center;gap:16px;
+    margin-bottom:28px;
+  }
+  .section-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);}
+  .section-line{flex:1;height:1px;background:var(--border);}
+
+  .projects{display:flex;flex-direction:column;gap:12px;}
+
+  .project-card{
+    display:flex;align-items:stretch;
+    background:var(--surface);
+    border:1px solid var(--border-hi);
+    border-radius:3px;
+    overflow:hidden;
+    transition:border-color 0.2s, background 0.2s;
+    cursor:pointer;
+    text-decoration:none;
+    animation:fadeUp 0.5s ease both;
+  }
+  .project-card:nth-child(1){animation-delay:0.1s;}
+  .project-card:nth-child(2){animation-delay:0.2s;}
+  .project-card:nth-child(3){animation-delay:0.3s;}
+
+  .project-card:hover{
+    border-color:var(--accent-dim);
+    background:rgba(200,241,53,0.03);
+  }
+  .project-card:hover .project-arrow{color:var(--accent);transform:translateX(3px);}
+  .project-card:hover .project-tag{border-color:var(--accent-dim);color:var(--accent-dim);}
+
+  .project-accent-bar{
+    width:3px;flex-shrink:0;
+    background:var(--accent);
+    opacity:0.6;
+    transition:opacity 0.2s;
+  }
+  .project-card:hover .project-accent-bar{opacity:1;}
+
+  .project-body{flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:8px;}
+  .project-top{display:flex;align-items:center;justify-content:space-between;}
+  .project-name{font-family:var(--display);font-size:20px;letter-spacing:3px;color:var(--text);}
+  .project-arrow{font-size:14px;color:var(--dim);transition:color 0.2s, transform 0.2s;}
+  .project-desc{font-size:9.5px;color:var(--mid);line-height:1.7;max-width:600px;}
+  .project-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+  .project-tag{
+    font-size:8px;letter-spacing:1.5px;text-transform:uppercase;
+    padding:3px 7px;border:1px solid var(--border-hi);border-radius:2px;
+    color:var(--dim);transition:all 0.2s;
+  }
+  .project-card.wip{opacity:0.5;cursor:default;pointer-events:none;}
+  .project-card.wip .project-accent-bar{background:var(--dim);}
+  .wip-badge{
+    font-size:8px;letter-spacing:1.5px;text-transform:uppercase;
+    padding:2px 6px;border:1px solid var(--border-hi);border-radius:2px;color:var(--dim);
+  }
+  footer{
+    border-top:1px solid var(--border);
+    padding:14px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface);
+  }
+  .footer-note{font-size:9px;color:var(--dim);letter-spacing:1px;}
+  .footer-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 8px var(--accent);
+    animation:pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="logo">NS</div>
+    <span class="header-sub">Projects</span>
+  </header>
+
+  <div class="hero">
+    <span class="hero-label"></span>
+    <div class="hero-name">NIKA<br><span>SHELIA</span></div>
+    <p class="hero-desc">
+      This is my outlet for whatever I currently find interesting, feel free to explore.
+    </p>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">Projects</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="projects">
+      <a class="project-card" href="projects/emergence/emergence.html">
+        <div class="project-accent-bar"></div>
+        <div class="project-body">
+          <div class="project-top">
+            <span class="project-name">EMERGENCE</span>
+            <span class="project-arrow">→</span>
+          </div>
+          <p class="project-desc">
+            An interactive simulation platform for demonstrating how complex patterns can emerge from simple rules. Can get resource heavy.
+          </p>
+          <div class="project-tags">
+            <span class="project-tag">Simulation</span>
+            <span class="project-tag">WebGL</span>
+            <span class="project-tag">Emergence</span>
+            <span class="project-tag">JavaScript</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- I'll add more projects later -->
+      <!--
+      <a class="project-card wip" href="#">
+        <div class="project-accent-bar"></div>
+        <div class="project-body">
+          <div class="project-top">
+            <span class="project-name">PROJECT NAME</span>
+            <span class="wip-badge">WIP</span>
+          </div>
+          <p class="project-desc">Description here.</p>
+          <div class="project-tags">
+            <span class="project-tag">Tag</span>
+          </div>
+        </div>
+      </a>
+      -->
+
+    </div>
+  </div>
+
+  <footer>
+    <span class="footer-note">nika shelia · 2025</span>
+    <div class="footer-dot"></div>
+  </footer>
+</div>
+</body>
+</html>

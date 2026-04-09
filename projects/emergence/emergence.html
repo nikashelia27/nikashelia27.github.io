@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMERGENCE</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#111; --border:#1e1e1e; --border-hi:#2a2a2a;
+    --text:#e0e0e0; --dim:#555; --mid:#888;
+    --accent:#c8f135; --accent-dim:#7a9420; --accent-glow:rgba(200,241,53,0.10);
+    --red:#ff4444; --mono:'DM Mono',monospace; --display:'Bebas Neue',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:44px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+  .logo{font-family:var(--display);font-size:21px;letter-spacing:5px;color:var(--accent);}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .ticklabel{font-size:9px;color:var(--dim);letter-spacing:1px;}
+  .main{display:flex;flex:1;overflow:hidden;}
+  .sidebar{width:220px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);transition:transform 0.25s ease;}
+  .sidebar-toggle{display:none;position:fixed;bottom:52px;left:12px;z-index:200;width:36px;height:36px;background:var(--surface);border:1px solid var(--border-hi);border-radius:2px;color:var(--accent);font-size:18px;cursor:pointer;align-items:center;justify-content:center;}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.5);}
+  .sidebar-backdrop.on{display:block;}
+  @media(max-width:600px){
+    .sidebar{position:fixed;top:44px;left:0;bottom:0;z-index:100;transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,0.6);}
+    .sidebar-toggle{display:flex;}
+  }
+  .sketch-list-wrap{flex-shrink:0;border-bottom:1px solid var(--border);}
+  .sketch-list-head{padding:9px 11px;}
+  .sketch-list-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);}
+  .sketch-list{display:flex;flex-direction:column;gap:2px;padding:6px 8px;}
+  .sketch-btn{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-hi);border-radius:2px;overflow:hidden;transition:border-color .15s;cursor:pointer;}
+  .sketch-btn:hover{border-color:var(--accent-dim);}
+  .sketch-btn.on{border-color:var(--accent);}
+  .sketch-btn .sname{font-family:var(--mono);font-size:9px;color:var(--mid);padding:6px 9px;cursor:pointer;background:none;border:none;transition:color .15s;text-align:left;width:100%;}
+  .sketch-btn.on .sname{color:var(--accent);}
+  .sketch-btn .sname:hover{color:var(--text);}
+  .params-bar{flex:1;overflow-y:auto;background:var(--surface);}
+  .params-bar::-webkit-scrollbar{width:3px;}
+  .params-bar::-webkit-scrollbar-thumb{background:var(--border-hi);}
+  .param-row{display:flex;flex-direction:column;gap:4px;padding:6px 11px;border-bottom:1px solid var(--border);}
+  .param-row:last-child{border-bottom:none;}
+  .param-row-top{display:flex;align-items:center;justify-content:space-between;}
+  .param-label{font-size:9px;color:var(--mid);}
+  .param-label.reinit-label{color:var(--accent-dim);}
+  .param-row input[type=range]{width:100%;-webkit-appearance:none;height:2px;background:var(--border-hi);border:none;padding:0;}
+  .param-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;background:var(--accent);border-radius:50%;cursor:pointer;}
+  .param-row input[type=checkbox]{accent-color:var(--accent);width:12px;height:12px;cursor:pointer;}
+  .param-val{font-size:9px;color:var(--accent);}
+  .controls{display:flex;align-items:center;gap:6px;padding:7px 8px;border-top:1px solid var(--border);flex-shrink:0;}
+  .btn{display:inline-flex;align-items:center;padding:6px 11px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;background:var(--bg);border:1px solid var(--border-hi);color:var(--mid);cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;}
+  .btn:hover{color:var(--text);}
+  .btn.pri{background:var(--accent);border-color:var(--accent);color:#0a0a0a;font-weight:500;}
+  .btn.pri:hover{background:#d4f54a;}
+  .canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+  #glCanvas{position:absolute;inset:0;width:100%;height:100%;}
+  #canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:auto;}
+  .statusbar{position:relative;z-index:1;display:flex;align-items:center;gap:14px;padding:4px 13px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+  .si{font-size:9px;color:var(--dim);}
+  .si span{color:var(--mid);}
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(10px);background:#180808;border:1px solid var(--red);color:var(--red);padding:8px 15px;font-size:10px;border-radius:2px;opacity:0;transition:all .2s;pointer-events:none;z-index:999;max-width:520px;text-align:center;line-height:1.5;}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+  .ok-toast{background:#081808;border-color:var(--accent-dim);color:var(--accent);}
+  .about-popup{position:fixed;bottom:48px;right:18px;width:280px;background:var(--surface);border:1px solid var(--border-hi);border-radius:3px;padding:12px 14px;z-index:300;pointer-events:none;opacity:0;transition:opacity 0.3s ease;}
+  .about-popup.visible{opacity:1;}
+  .about-popup.hiding{opacity:0;transition:opacity 0.5s ease;}
+  .about-title{font-family:var(--display);font-size:14px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;}
+  .about-text{font-size:9.5px;color:var(--mid);line-height:1.65;}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:baseline;gap:10px;">
+    <div class="logo">EMERGENCE</div>
+    <span style="font-size:10px;color:#9b59b6;letter-spacing:1px;font-family:var(--mono);">by Nika Shelia</span>
+  </div>
+  <div class="header-right">
+    <div class="ticklabel" id="tickEl">TICK 0</div>
+    <div class="ticklabel" id="coresEl" style="color:var(--accent-dim)"></div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:9px;color:var(--dim);letter-spacing:1px;">SPD</span>
+      <input type="range" id="speedR" min="1" max="120" value="60" style="width:80px" oninput="setSpeed(+this.value)">
+      <span id="speedV" style="font-size:9px;min-width:18px;">60</span>
+    </div>
+  </div>
+</header>
+<div class="main">
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar" id="sidebar">
+    <div class="sketch-list-wrap">
+      <div class="sketch-list-head">
+        <span class="sketch-list-label">Sketches</span>
+      </div>
+      <div class="sketch-list" id="sketchList"></div>
+    </div>
+    <div class="params-bar" id="paramsBar"></div>
+    <div class="controls">
+      <button class="btn pri" id="playBtn" onclick="togglePlay()">▶ Play</button>
+      <button class="btn" onclick="stepOnce()">Step</button>
+      <button class="btn" onclick="applyAndReset()">↺ Reset</button>
+    </div>
+  </div>
+  <div class="canvas-area">
+    <canvas id="glCanvas"></canvas>
+    <canvas id="canvas"></canvas>
+    <div class="statusbar">
+      <div class="si">tick <span id="sTick">0</span></div>
+      <div class="si">mode <span id="sMode">—</span></div>
+      <div class="si">render <span id="sRender">2D</span></div>
+      <div class="si">sketch <span id="sSketch">—</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="about-popup" id="aboutPopup">
+  <div class="about-title" id="aboutTitle"></div>
+  <div class="about-text" id="aboutText"></div>
+</div>
+
+<script>
+'use strict';
+
+// ================================================================
+// SKETCH LIST — add your sketch filenames here (without .js)
+// ================================================================
+const SKETCHES = [
+  'Boids',
+  'Cyclic Cellular Automaton',
+  'Game of Life',
+  'Langtons Ant',
+  'Lenia',
+  'Morphogenesis',
+  'Nodal Growth',
+  'Particle Life',
+  'Reaction-Diffusion',
+  'Resonant Neurons',
+  'Slime Mold',
+  'Tree Generation',
+];
+
+// ================================================================
+// CANVAS + WEBGL SETUP
+// ================================================================
+const glCanvas = document.getElementById('glCanvas');
+const canvas   = document.getElementById('canvas');
+const ctx2d    = canvas.getContext('2d');
+const CORES    = navigator.hardwareConcurrency || 4;
+document.getElementById('coresEl').textContent = CORES + ' cores';
+
+const gl = glCanvas.getContext('webgl2') || glCanvas.getContext('webgl');
+let glPrograms = null;
+
+function initGL() {
+  if (!gl) return;
+  const quadVS = `attribute vec2 a_pos;varying vec2 v_uv;void main(){v_uv=a_pos*0.5+0.5;gl_Position=vec4(a_pos,0,1);}`;
+  const gridFS = `precision mediump float;uniform sampler2D u_data,u_lut;uniform float u_cols,u_rows;varying vec2 v_uv;void main(){vec2 cell=vec2(floor(v_uv.x*u_cols),floor((1.0-v_uv.y)*u_rows));float val=texture2D(u_data,(cell+0.5)/vec2(u_cols,u_rows)).r;float lutX=(val*15.0+0.5)/16.0;gl_FragColor=vec4(texture2D(u_lut,vec2(lutX,0.5)).rgb,1);}`;
+  const rgbaFS = `precision mediump float;uniform sampler2D u_data;uniform float u_cols,u_rows;varying vec2 v_uv;void main(){vec2 cell=vec2(floor(v_uv.x*u_cols),floor((1.0-v_uv.y)*u_rows));gl_FragColor=texture2D(u_data,(cell+0.5)/vec2(u_cols,u_rows));}`;
+  const pointVS = `attribute vec2 a_pos;attribute vec3 a_col;uniform vec2 u_res;uniform float u_size;varying vec3 v_col;void main(){v_col=a_col;vec2 clip=(a_pos/u_res)*2.0-1.0;gl_Position=vec4(clip.x,-clip.y,0,1);gl_PointSize=u_size;}`;
+  const pointFS = `precision mediump float;varying vec3 v_col;void main(){vec2 c=gl_PointCoord-0.5;if(dot(c,c)>0.25)discard;gl_FragColor=vec4(v_col,1);}`;
+  const gridProg=makeProgram(quadVS,gridFS), rgbaProg=makeProgram(quadVS,rgbaFS), pointProg=makeProgram(pointVS,pointFS);
+  if(!gridProg||!rgbaProg||!pointProg) return;
+  const quadBuf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  glPrograms={gridProg,rgbaProg,pointProg,quadBuf,dataTex:gl.createTexture(),lutTex:gl.createTexture(),rgbaTex:gl.createTexture(),posBuf:gl.createBuffer(),colBuf:gl.createBuffer()};
+}
+function makeProgram(vsrc,fsrc){
+  const vs=gl.createShader(gl.VERTEX_SHADER);gl.shaderSource(vs,vsrc);gl.compileShader(vs);
+  if(!gl.getShaderParameter(vs,gl.COMPILE_STATUS))return null;
+  const fs=gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(fs,fsrc);gl.compileShader(fs);
+  if(!gl.getShaderParameter(fs,gl.COMPILE_STATUS))return null;
+  const p=gl.createProgram();gl.attachShader(p,vs);gl.attachShader(p,fs);gl.linkProgram(p);
+  return gl.getProgramParameter(p,gl.LINK_STATUS)?p:null;
+}
+function makeGlCtx(W,H){
+  return{
+    uploadGrid(data,cols,rows,colorFn){
+      if(!gl||!glPrograms)return;
+      const{gridProg,quadBuf,dataTex,lutTex}=glPrograms;
+      const LUT=new Uint8Array(16*4);
+      for(let i=0;i<16;i++){const rgb=colorFn(i/15);LUT[i*4]=rgb[0];LUT[i*4+1]=rgb[1];LUT[i*4+2]=rgb[2];LUT[i*4+3]=255;}
+      gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,lutTex);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,16,1,0,gl.RGBA,gl.UNSIGNED_BYTE,LUT);
+      let ud=data instanceof Float32Array?new Uint8Array(cols*rows):data;
+      if(data instanceof Float32Array)for(let i=0;i<data.length;i++)ud[i]=Math.round(Math.min(1,Math.max(0,data[i]))*255);
+      gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,dataTex);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,cols,rows,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,ud);
+      gl.viewport(0,0,W,H);gl.useProgram(gridProg);
+      const aPos=gl.getAttribLocation(gridProg,'a_pos');gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+      gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+      gl.uniform1i(gl.getUniformLocation(gridProg,'u_data'),0);gl.uniform1i(gl.getUniformLocation(gridProg,'u_lut'),1);
+      gl.uniform1f(gl.getUniformLocation(gridProg,'u_cols'),cols);gl.uniform1f(gl.getUniformLocation(gridProg,'u_rows'),rows);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    },
+    uploadRGBA(data,cols,rows){
+      if(!gl||!glPrograms)return;
+      const{rgbaProg,quadBuf,rgbaTex}=glPrograms;
+      gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,rgbaTex);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,cols,rows,0,gl.RGBA,gl.UNSIGNED_BYTE,data);
+      gl.viewport(0,0,W,H);gl.useProgram(rgbaProg);
+      const aPos=gl.getAttribLocation(rgbaProg,'a_pos');gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+      gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+      gl.uniform1i(gl.getUniformLocation(rgbaProg,'u_data'),0);
+      gl.uniform1f(gl.getUniformLocation(rgbaProg,'u_cols'),cols);gl.uniform1f(gl.getUniformLocation(rgbaProg,'u_rows'),rows);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    },
+    drawPoints(positions,colors,size){
+      if(!gl||!glPrograms)return;
+      const{pointProg,posBuf,colBuf}=glPrograms;
+      const count=positions.length/2;if(!count)return;
+      gl.viewport(0,0,W,H);gl.useProgram(pointProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER,posBuf);gl.bufferData(gl.ARRAY_BUFFER,positions,gl.DYNAMIC_DRAW);
+      const aPos=gl.getAttribLocation(pointProg,'a_pos');gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+      gl.bindBuffer(gl.ARRAY_BUFFER,colBuf);gl.bufferData(gl.ARRAY_BUFFER,colors,gl.DYNAMIC_DRAW);
+      const aCol=gl.getAttribLocation(pointProg,'a_col');gl.enableVertexAttribArray(aCol);gl.vertexAttribPointer(aCol,3,gl.FLOAT,false,0,0);
+      gl.uniform2f(gl.getUniformLocation(pointProg,'u_res'),W,H);gl.uniform1f(gl.getUniformLocation(pointProg,'u_size'),size*2);
+      gl.drawArrays(gl.POINTS,0,count);
+    }
+  };
+}
+function resizeCanvases(){
+  const area=canvas.parentElement;
+  const W=area.clientWidth, H=area.clientHeight-26;
+  canvas.width=W;canvas.height=H;glCanvas.width=W;glCanvas.height=H;
+  if(gl)gl.viewport(0,0,W,H);
+  sendWorker({type:'resize',w:W,h:H});
+}
+window.addEventListener('resize',resizeCanvases);
+
+// ================================================================
+// APP STATE
+// ================================================================
+let worker=null, running=false, currentSketch=null, liveParams={}, paramDefs={}, behaviors_main={};
+let currentAbout=null, aboutTimer=null;
+
+// ================================================================
+// STRIP WORKER
+// ================================================================
+const STRIP_WORKER_SRC=`'use strict';let responseFn=null;self.onmessage=function(e){const msg=e.data;if(msg.type==='compile'){try{responseFn=new Function('state','sensed','thing','allThings','world',msg.responseSrc);}catch(err){self.postMessage({type:'error',msg:err.message});}return;}if(msg.type==='tick'){if(!responseFn){self.postMessage({type:'done'});return;}const{state,rowStart,rowEnd,params,wrap}=msg;const world={params,wrap,rowStart,rowEnd,wrapPos:null,spatial:null,cores:1};world.wrapPos=(x,y)=>{const W=params.mapW||9999,H=params.mapH||9999;if(!wrap)return{x:Math.max(0,Math.min(W-0.01,x)),y:Math.max(0,Math.min(H-0.01,y))};return{x:((x%W)+W)%W,y:((y%H)+H)%H};};try{responseFn(state,null,{x:0,y:0,type:'_strip',state},[],world);}catch(err){self.postMessage({type:'error',msg:err.message});}self.postMessage({type:'done'});}};`;
+
+const AGENT_WORKER_SRC=`'use strict';let agentFn=null;self.onmessage=function(e){const msg=e.data;if(msg.type==='compile'){try{agentFn=new Function('state','sensed','thing','allThings','world',msg.responseSrc);}catch(err){self.postMessage({type:'error',msg:err.message});}return;}if(msg.type==='tick'){if(!agentFn){self.postMessage({type:'done'});return;}const{state,iStart,iEnd,params,wrap}=msg;const world={params,wrap,iStart,iEnd,rowStart:undefined,rowEnd:undefined,wrapPos:null,spatial:null,cores:1};world.wrapPos=(x,y)=>{const W=params.mapW||9999,H=params.mapH||9999;if(!wrap)return{x:Math.max(0,Math.min(W-0.01,x)),y:Math.max(0,Math.min(H-0.01,y))};return{x:((x%W)+W)%W,y:((y%H)+H)%H};};try{agentFn(state,null,{x:0,y:0,type:'_agent',state},[],world);}catch(err){self.postMessage({type:'error',msg:err.message});}self.postMessage({type:'done'});}};`;
+
+// ================================================================
+// MAIN WORKER
+// ================================================================
+const WORKER_SRC=`'use strict';
+let things=[],behaviors={},liveParams={};
+let running=false,tick=0,tickMs=1000/60,trail=false;
+let cols=0,rows=0,mapW=0,mapH=0,W=800,H=600;
+let rafHandle=null,lastT=0;
+const CORES=self.navigator?self.navigator.hardwareConcurrency||4:4;
+let stripWorkers=[],stripWorkerSrc='';
+let parallelResponseSrc=null,stripWorkerCompiled=false;
+let agentWorkers=[],agentWorkerSrc='';
+let agentResponseSrc=null,agentWorkerCompiled=false;
+function define(name,spec){if(spec.response)spec.responseSrc=spec.response.toString().replace(/^[^{]+\\{/,'').replace(/\\}\\s*$/,'');behaviors[name]=spec;}
+function about(meta){self.postMessage({type:'about',meta});}
+function params(defs){if(!defs.wrapEdges){defs={wrapEdges:{label:'Wrap edges',type:'checkbox',value:true},...defs};}for(const[k,d]of Object.entries(defs))if(!(k in liveParams))liveParams[k]=d.value;for(const k of Object.keys(liveParams))if(!(k in defs))delete liveParams[k];self.postMessage({type:'paramDefs',defs});}
+function makeWorld(spatial){const cs=liveParams.cellSize||8;return{W:mapW||W,H:mapH||H,cores:CORES,cols:Math.floor((mapW||W)/cs),rows:Math.floor((mapH||H)/cs),wrap:liveParams.wrapEdges!==undefined?!!liveParams.wrapEdges:true,params:{...liveParams},spatial:spatial||null};}
+function addHelpers(w){w.wrapPos=(x,y)=>{if(!w.wrap)return{x:Math.max(0,Math.min(w.W-0.01,x)),y:Math.max(0,Math.min(w.H-0.01,y))};return{x:((x%w.W)+w.W)%w.W,y:((y%w.H)+w.H)%w.H};};return w;}
+function buildSpatial(step){const map=new Map();for(const t of things){const k=Math.floor(t.x/step)+','+Math.floor(t.y/step);if(!map.has(k))map.set(k,[]);map.get(k).push(t);}map.query=(px,py,r,type)=>{const out=[],gs=Math.ceil(r/step)+1,r2=r*r;const ox=Math.floor(px/step),oy=Math.floor(py/step);for(let dy=-gs;dy<=gs;dy++){for(let dx=-gs;dx<=gs;dx++){const cell=map.get((ox+dx)+','+(oy+dy));if(!cell)continue;for(const t of cell){if(type&&t.type!==type)continue;const ex=t.x-px,ey=t.y-py;if(ex*ex+ey*ey<=r2)out.push(t);}}}return out;};return map;}
+function isParallelGrid(t){if(!t.state)return false;for(const v of Object.values(t.state)){if(ArrayBuffer.isView(v)&&v.buffer instanceof SharedArrayBuffer)return true;}return false;}
+function ensureStripWorkers(n){while(stripWorkers.length<n){const b=new Blob([stripWorkerSrc],{type:'application/javascript'});const w=new Worker(URL.createObjectURL(b));stripWorkers.push(w);if(parallelResponseSrc)w.postMessage({type:'compile',responseSrc:parallelResponseSrc});}}
+function parallelGridTick(thing,w){return new Promise(resolve=>{const beh=behaviors[thing.type];if(!beh||!beh.responseSrc){resolve();return;}const tRows=thing.state.rows||w.rows;const n=Math.min(CORES,tRows),rpw=Math.ceil(tRows/n);ensureStripWorkers(n);if(parallelResponseSrc!==beh.responseSrc){parallelResponseSrc=beh.responseSrc;stripWorkerCompiled=false;}if(!stripWorkerCompiled){stripWorkers.forEach(sw=>sw.postMessage({type:'compile',responseSrc:parallelResponseSrc}));stripWorkerCompiled=true;}let done=0;const onDone=()=>{if(++done===n)resolve();};for(let i=0;i<n;i++){const rs=i*rpw,re=Math.min(rs+rpw,tRows);if(rs>=tRows){onDone();continue;}stripWorkers[i].onmessage=(e)=>{if(e.data&&e.data.type==='error')self.postMessage({type:'error',msg:'Strip: '+e.data.msg});onDone();};stripWorkers[i].postMessage({type:'tick',state:thing.state,rowStart:rs,rowEnd:re,params:{...w.params,mapW:w.W,mapH:w.H},wrap:w.wrap});}});}
+function isAgentParallel(t){return behaviors[t.type]&&!!behaviors[t.type].agentParallel;}
+function ensureAgentWorkers(n){while(agentWorkers.length<n){const b=new Blob([agentWorkerSrc],{type:'application/javascript'});const w=new Worker(URL.createObjectURL(b));agentWorkers.push(w);if(agentResponseSrc)w.postMessage({type:'compile',responseSrc:agentResponseSrc});}}
+function agentParallelTick(thing,w){return new Promise(resolve=>{const beh=behaviors[thing.type];if(!beh||!beh.responseSrc){resolve();return;}const count=thing.state.count||0;if(!count){resolve();return;}const n=Math.min(CORES,count);const ipp=Math.ceil(count/n);ensureAgentWorkers(n);if(agentResponseSrc!==beh.responseSrc){agentResponseSrc=beh.responseSrc;agentWorkerCompiled=false;}if(!agentWorkerCompiled){agentWorkers.forEach(aw=>aw.postMessage({type:'compile',responseSrc:agentResponseSrc}));agentWorkerCompiled=true;}if(thing.state.dvx)thing.state.dvx.fill(0);if(thing.state.dvy)thing.state.dvy.fill(0);if(thing.state.avx)thing.state.avx.fill(0);if(thing.state.avy)thing.state.avy.fill(0);if(thing.state.aCnt)thing.state.aCnt.fill(0);let done=0;const onDone=()=>{if(++done===n)resolve();};for(let i=0;i<n;i++){const iStart=i*ipp,iEnd=Math.min(iStart+ipp,count);if(iStart>=count){onDone();continue;}agentWorkers[i].onmessage=(e)=>{if(e.data&&e.data.type==='error')self.postMessage({type:'error',msg:'Agent: '+e.data.msg});onDone();};agentWorkers[i].postMessage({type:'tick',state:thing.state,iStart,iEnd,params:{...w.params,mapW:w.W,mapH:w.H},wrap:w.wrap});}});}
+async function engineTick(){const spatial=buildSpatial(8);const w=addHelpers(makeWorld(spatial));const aThings=things.filter(t=>isAgentParallel(t));const pThings=things.filter(t=>!isAgentParallel(t)&&isParallelGrid(t));const nThings=things.filter(t=>!isAgentParallel(t)&&!isParallelGrid(t));const pPromises=pThings.map(async t=>{await parallelGridTick(t,w);const beh=behaviors[t.type];if(beh&&typeof beh.postTick==='function')beh.postTick(t.state,w.params,w.wrap,w.W,w.H);});const aPromises=aThings.map(async t=>{await agentParallelTick(t,w);const beh=behaviors[t.type];if(beh&&typeof beh.postTick==='function')beh.postTick(t.state,w.params,w.wrap,w.W,w.H);});const next=new Array(nThings.length);for(let i=0;i<nThings.length;i++){const t=nThings[i],beh=behaviors[t.type];if(!beh){next[i]=t.state;continue;}try{const sensed=beh.sensing?beh.sensing(t,things,w):null;next[i]=beh.response?beh.response(t.state,sensed,t,things,w):t.state;}catch(e){self.postMessage({type:'error',msg:'['+t.type+'] '+e.message});next[i]=t.state;}}for(let i=0;i<nThings.length;i++)nThings[i].state=next[i];await Promise.all([...pPromises,...aPromises]);tick++;const mode=pThings.length>0?CORES+'-core parallel':aThings.length>0?CORES+'-core agents':'single-core';self.postMessage({type:'status',tick,things:things.length,mapW,mapH,mode});const worldSnap={W:w.W,H:w.H,cols:w.cols,rows:w.rows,wrap:w.wrap,params:{...w.params},cores:CORES};const groups={};for(const t of things){if(!groups[t.type])groups[t.type]=[];groups[t.type].push({x:t.x,y:t.y,type:t.type,state:t.state});}self.postMessage({type:'render',groups,world:worldSnap,trail});}
+function initWorld(){things=[];stripWorkers.forEach(w=>w&&w.terminate());stripWorkers=[];parallelResponseSrc=null;stripWorkerCompiled=false;agentWorkers.forEach(w=>w&&w.terminate());agentWorkers=[];agentResponseSrc=null;agentWorkerCompiled=false;mapW=liveParams.mapW?Math.round(liveParams.mapW):W;mapH=liveParams.mapH?Math.round(liveParams.mapH):H;const w=addHelpers(makeWorld(null));cols=w.cols;rows=w.rows;for(const[name,beh]of Object.entries(behaviors)){try{const spawned=beh.init(w);for(const t of spawned){t.type=name;things.push(t);}}catch(e){self.postMessage({type:'error',msg:'['+name+'] init: '+e.message});}}tick=0;self.postMessage({type:'status',tick,things:things.length,mapW,mapH,mode:'—'});}
+function compileSketch(code,preserveParams){behaviors={};const saved=preserveParams?{...liveParams}:{};liveParams={};try{new Function('define','params','about','Math',code)(define,params,about,Math);}catch(e){self.postMessage({type:'error',msg:'Compile: '+e.message});return false;}if(!Object.keys(behaviors).length){self.postMessage({type:'error',msg:'No behaviors defined.'});return false;}if(preserveParams){for(const k of Object.keys(liveParams)){if(k in saved)liveParams[k]=saved[k];}}parallelResponseSrc=null;stripWorkerCompiled=false;stripWorkers.forEach(w=>w&&w.terminate());stripWorkers=[];return true;}
+async function loop(ts){if(!running)return;if(ts-lastT>=tickMs){await engineTick();lastT=ts;}rafHandle=requestAnimationFrame(loop);}
+function startLoop(){if(rafHandle)cancelAnimationFrame(rafHandle);lastT=performance.now();rafHandle=requestAnimationFrame(loop);}
+function stopLoop(){if(rafHandle)cancelAnimationFrame(rafHandle);rafHandle=null;}
+self.onmessage=function(e){const msg=e.data;switch(msg.type){case 'init':W=msg.w||800;H=msg.h||600;stripWorkerSrc=msg.stripSrc;agentWorkerSrc=msg.agentSrc||'';break;case 'resize':W=msg.w;H=msg.h;mapW=liveParams.mapW?Math.round(liveParams.mapW):W;mapH=liveParams.mapH?Math.round(liveParams.mapH):H;break;case 'compile':if(compileSketch(msg.code,msg.preserveParams)){initWorld();self.postMessage({type:'compiled'});}break;case 'params':liveParams[msg.key]=msg.value;if(msg.reinit)initWorld();break;case 'play':running=true;startLoop();break;case 'pause':running=false;stopLoop();break;case 'step':running=false;stopLoop();engineTick();break;case 'speed':tickMs=1000/msg.value;break;case 'trail':trail=msg.value;break;}};`;
+
+// ================================================================
+// WORKER INIT
+// ================================================================
+function createWorker(){
+  if(worker){worker.terminate();worker=null;}
+  worker=new Worker(URL.createObjectURL(new Blob([WORKER_SRC],{type:'application/javascript'})));
+  worker.onmessage=onWorkerMessage;
+  worker.onerror=e=>showError('Worker: '+e.message);
+  const area=canvas.parentElement;
+  worker.postMessage({type:'init',w:area.clientWidth,h:area.clientHeight-26,stripSrc:STRIP_WORKER_SRC,agentSrc:AGENT_WORKER_SRC});
+}
+function sendWorker(msg){if(worker)worker.postMessage(msg);}
+
+// ================================================================
+// COMPILE BEHAVIORS ON MAIN THREAD
+// ================================================================
+function compileMainBehaviors(code){
+  behaviors_main={};
+  try{
+    new Function('define','params','about','Math',code)(
+      (name,spec)=>{behaviors_main[name]=spec;},
+      ()=>{},
+      ()=>{},
+      Math
+    );
+  }catch(e){console.warn('Main compile:',e.message);}
+}
+
+// ================================================================
+// ABOUT POPUP
+// ================================================================
+function showAbout(meta){
+  if(!meta||(!meta.title&&!meta.text))return;
+  currentAbout=meta;
+  const popup=document.getElementById('aboutPopup');
+  document.getElementById('aboutTitle').textContent=meta.title||'';
+  document.getElementById('aboutText').textContent=meta.text||'';
+  clearTimeout(aboutTimer);
+  popup.classList.remove('hiding');
+  popup.classList.add('visible');
+  aboutTimer=setTimeout(()=>{
+    popup.classList.add('hiding');
+    setTimeout(()=>popup.classList.remove('visible'),500);
+  },6000);
+}
+function showAboutOnHover(name){
+  if(currentSketch===name&&currentAbout)showAbout(currentAbout);
+}
+
+// ================================================================
+// RENDER
+// ================================================================
+function buildRenderWorld(snap){
+  const w={...snap};
+  w.wrapPos=(x,y)=>{
+    if(!w.wrap)return{x:Math.max(0,Math.min(w.W-0.01,x)),y:Math.max(0,Math.min(w.H-0.01,y))};
+    return{x:((x%w.W)+w.W)%w.W,y:((y%w.H)+w.H)%w.H};
+  };
+  w.spatial=null;
+  return w;
+}
+function doRender(groups,worldSnap,trail){
+  const W=canvas.width,H=canvas.height;
+  const world=buildRenderWorld(worldSnap);
+  const typeNames=Object.keys(groups);
+  const hasGL=gl&&glPrograms&&typeNames.some(n=>behaviors_main[n]&&typeof behaviors_main[n].renderGL==='function');
+  const has2D=typeNames.some(n=>behaviors_main[n]&&typeof behaviors_main[n].render==='function'&&!(behaviors_main[n].renderGL&&gl&&glPrograms));
+  if(gl&&glPrograms){gl.viewport(0,0,W,H);gl.clearColor(0.04,0.04,0.04,1);gl.clear(gl.COLOR_BUFFER_BIT);}
+  if(has2D){
+    if(trail){ctx2d.fillStyle='rgba(10,10,10,0.22)';ctx2d.fillRect(0,0,W,H);}
+    else{ctx2d.clearRect(0,0,W,H);if(!hasGL){ctx2d.fillStyle='#0a0a0a';ctx2d.fillRect(0,0,W,H);}}
+  }else{ctx2d.clearRect(0,0,W,H);}
+  document.getElementById('sRender').textContent=hasGL?'WebGL':'2D';
+  const glCtx=gl&&glPrograms?makeGlCtx(W,H):null;
+  for(const[typeName,things]of Object.entries(groups)){
+    const beh=behaviors_main[typeName];if(!beh)continue;
+    if(glCtx&&typeof beh.renderGL==='function'){try{beh.renderGL(glCtx,things,world);}catch(e){showError('['+typeName+'] renderGL: '+e.message);}}
+    else if(typeof beh.render==='function'){for(const thing of things){try{beh.render(ctx2d,thing,world);}catch(e){showError('['+typeName+'] render: '+e.message);break;}}}
+  }
+}
+
+// ================================================================
+// WORKER MESSAGE HANDLER
+// ================================================================
+function onWorkerMessage(e){
+  const msg=e.data;
+  switch(msg.type){
+    case 'status':
+      document.getElementById('tickEl').textContent='TICK '+msg.tick;
+      document.getElementById('sTick').textContent=msg.tick;
+      document.getElementById('sMode').textContent=msg.mode||'—';
+      break;
+    case 'render': doRender(msg.groups,msg.world,msg.trail); break;
+    case 'paramDefs': paramDefs=msg.defs; renderParamsUI(msg.defs); break;
+    case 'compiled': running=true; updatePlayBtn(); sendWorker({type:'play'}); break;
+    case 'error': showError(msg.msg); break;
+    case 'about': showAbout(msg.meta); break;
+  }
+}
+
+// ================================================================
+// PARAMS UI
+// ================================================================
+function renderParamsUI(defs){
+  const bar=document.getElementById('paramsBar');
+  bar.innerHTML='';
+  for(const[key,def]of Object.entries(defs)){
+    const row=document.createElement('div');
+    row.className='param-row';
+    const cur=liveParams[key]??def.value;
+    const isReinit=!!def.reinit;
+    const lc=isReinit?'param-label reinit-label':'param-label';
+    if(def.type==='checkbox'){
+      row.innerHTML=`<div class="param-row-top"><span class="${lc}">${def.label}</span><input type="checkbox" ${cur?'checked':''} onchange="updateParam('${key}',this.checked,${isReinit})"></div>`;
+    }else{
+      const step=def.step||1;
+      row.innerHTML=`<div class="param-row-top"><span class="${lc}">${def.label}</span><span class="param-val" id="pv-${key}">${cur}</span></div><input type="range" min="${def.min}" max="${def.max}" step="${step}" value="${cur}" oninput="updateParam('${key}',+this.value,${isReinit});document.getElementById('pv-${key}').textContent=this.value">`;
+    }
+    bar.appendChild(row);
+  }
+}
+function updateParam(key,value,reinit=false){
+  liveParams[key]=value;
+  sendWorker({type:'params',key,value,reinit});
+}
+
+// ================================================================
+// CONTROLS
+// ================================================================
+function togglePlay(){
+  running=!running;
+  updatePlayBtn();
+  sendWorker({type:running?'play':'pause'});
+}
+function updatePlayBtn(){
+  document.getElementById('playBtn').textContent=running?'⏸ Pause':'▶ Play';
+}
+function stepOnce(){running=false;updatePlayBtn();sendWorker({type:'step'});}
+function applyAndReset(){
+  if(!currentSketch)return;
+  sendWorker({type:'compile',code:currentCode,preserveParams:true});
+}
+function setSpeed(v){
+  document.getElementById('speedV').textContent=v;
+  sendWorker({type:'speed',value:v});
+}
+
+// ================================================================
+// SKETCH LOADING (static files — no server needed)
+// ================================================================
+let currentCode='';
+
+function renderSketchList(){
+  const list=document.getElementById('sketchList');
+  list.innerHTML='';
+  for(const name of SKETCHES){
+    const btn=document.createElement('div');
+    btn.className='sketch-btn';
+    btn.id='sb-'+encodeURIComponent(name);
+    const lb=document.createElement('button');
+    lb.className='sname';lb.textContent=name;
+    lb.onclick=()=>loadSketch(name);
+    lb.onmouseenter=()=>showAboutOnHover(name);
+    btn.appendChild(lb);
+    list.appendChild(btn);
+  }
+}
+
+async function loadSketch(name){
+  try{
+    const res=await fetch('sketches/'+encodeURIComponent(name)+'.js');
+    if(!res.ok)throw new Error(res.status);
+    const code=await res.text();
+    currentCode=code;
+    currentSketch=name;
+    currentAbout=null;
+    liveParams={};
+    document.getElementById('sSketch').textContent=name;
+    document.querySelectorAll('.sketch-btn').forEach(b=>b.classList.remove('on'));
+    const el=document.getElementById('sb-'+encodeURIComponent(name));
+    if(el)el.classList.add('on');
+    compileMainBehaviors(code);
+    sendWorker({type:'compile',code,preserveParams:false});
+  }catch(e){showError('Could not load "'+name+'": '+e.message);}
+}
+
+// ================================================================
+// TOAST
+// ================================================================
+let toastTimer=null;
+function showError(msg){
+  const t=document.getElementById('toast');
+  t.className='toast on';t.textContent=msg;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('on'),5000);
+}
+
+// ================================================================
+// SIDEBAR TOGGLE (mobile)
+// ================================================================
+function toggleSidebar(){
+  const s=document.getElementById('sidebar');
+  const open=s.classList.toggle('open');
+  document.getElementById('sidebarBackdrop').classList.toggle('on',open);
+  document.getElementById('sidebarToggle').textContent=open?'✕':'☰';
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('on');
+  document.getElementById('sidebarToggle').textContent='☰';
+}
+
+// ================================================================
+// BOOT
+// ================================================================
+
+// Register service worker to enable SharedArrayBuffer on GitHub Pages.
+// On first load the page reloads once after the SW activates.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    if (!crossOriginIsolated) {
+      reg.addEventListener('updatefound', () => location.reload());
+      if (reg.active) location.reload();
+    }
+  });
+}
+
+initGL();
+resizeCanvases();
+setSpeed(60);
+createWorker();
+renderSketchList();
+loadSketch(SKETCHES[0]);
+</script>
+</body>
+</html>
