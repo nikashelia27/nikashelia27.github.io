@@ -6,10 +6,10 @@ about({
 params({
   wrapEdges: { label: 'Wrap edges', type: 'checkbox', value: true },
   splitChance: { label: 'Branch split %',  type: 'range', min: 1,  max: 30,  value: 8   },
-  growSpeed:   { label: 'Grow speed',      type: 'range', min: 1,  max: 5,   value: 3   },
-  maxGen:      { label: 'Max generations', type: 'range', min: 3,  max: 12,  value: 8   },
-  wobble:      { label: 'Wobble',          type: 'range', min: 0,  max: 40,  value: 12  },
-  upward:      { label: 'Upward bias',     type: 'range', min: 0,  max: 200, value: 40  },
+  growSpeed:   { label: 'Grow speed',      type: 'range', min: 1,  max: 5,   value: 5   },
+  maxGen:      { label: 'Max generations', type: 'range', min: 3,  max: 12,  value: 6   },
+  wobble:      { label: 'Wobble',          type: 'range', min: 0,  max: 40,  value: 14  },
+  upward:      { label: 'Upward bias',     type: 'range', min: 0,  max: 200, value: 66  },
   tipHue:      { label: 'Tip hue',         type: 'range', min: 0,  max: 360, value: 100 },
   rootHue:     { label: 'Root hue',        type: 'range', min: 0,  max: 360, value: 30  }
 });
