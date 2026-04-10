@@ -9,7 +9,7 @@ params({
   sensorAngle:     { label: 'Sensor angle',        type: 'range', min: 5,    max: 90,     value: 56  },
   sensorDist:      { label: 'Sensor dist',         type: 'range', min: 2,    max: 40,     value: 26  },
   turnSpeed:       { label: 'Turn speed',          type: 'range', min: 1,    max: 60,     value: 60  },
-  moveSpeed:       { label: 'Move speed',          type: 'range', min: 1,    max: 10,     value: 7   },
+  moveSpeed:       { label: 'Move speed',          type: 'range', min: 1,    max: 10,     value: 10   },
   deposit:         { label: 'Explore deposit',     type: 'range', min: 1,    max: 80,     value: 23  },
   foodDeposit:     { label: 'Food deposit',        type: 'range', min: 1,    max: 120,    value: 42  },
   decay:           { label: 'Explore decay %',     type: 'range', min: 1,    max: 60,     value: 10  },
@@ -32,7 +32,7 @@ params({
   donorMin:        { label: 'Donor min %',         type: 'range', min: 10,   max: 100,    value: 65  },
   receiverMax:     { label: 'Receiver max %',      type: 'range', min: 1,    max: 90,     value: 35  },
   leaderSense:     { label: 'Leader sense',        type: 'range', min: 0,    max: 100,    value: 69   },
-  spawnMode:       { label: 'Spawn 0=disk 1=scatter 2=ring', type: 'range', min: 0, max: 2, value: 0, reinit: true },
+  spawnMode:       { label: 'Spawn 0=disk 1=scatter 2=ring', type: 'range', min: 0, max: 2, value: 1, reinit: true },
 
   edgeMargin:      { label: 'Edge margin',         type: 'range', min: 0,    max: 80,     value: 18  },
   edgeTurnBoost:   { label: 'Edge turn boost',     type: 'range', min: 0,    max: 200,    value: 55  },

@@ -17,7 +17,7 @@ params({
   diffuse:     { label: "Morphogen diffusion", type: "range", min: 0,   max: 100, value: 0 },
   decay:       { label: "Morphogen decay",     type: "range", min: 0,   max: 100, value: 0  },
   growth:      { label: "Growth",              type: "range", min: 0,   max: 100, value: 100 },
-  divideAt:    { label: "Divide at percent",   type: "range", min: 110, max: 260, value: 156 },
+  divideAt:    { label: "Divide at percent",   type: "range", min: 110, max: 260, value: 130 },
   maxCells:    { label: "Max cells",           type: "range", min: 10,  max: 2000, value: 1047 },
   damping:     { label: "Damping",             type: "range", min: 70,  max: 99,  value: 73 },
   hue:         { label: "Hue",                 type: "range", min: 0,   max: 360, value: 150 },

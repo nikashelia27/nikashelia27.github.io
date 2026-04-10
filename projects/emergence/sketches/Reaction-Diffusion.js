@@ -9,11 +9,11 @@ params({
   preset:    { label: 'Preset 0-7',   type: 'range', min: 0,  max: 7,   value: 3,   reinit: true },
   feed:      { label: 'Feed ×1000',   type: 'range', min: 1,  max: 100, value: 36  },
   kill:      { label: 'Kill ×1000',   type: 'range', min: 1,  max: 100, value: 57  },
-  dU:        { label: 'Diffuse U',    type: 'range', min: 1,  max: 50,  value: 15  },
-  dV:        { label: 'Diffuse V',    type: 'range', min: 1,  max: 50,  value: 5   },
+  dU:        { label: 'Diffuse U',    type: 'range', min: 1,  max: 50,  value: 14  },
+  dV:        { label: 'Diffuse V',    type: 'range', min: 1,  max: 50,  value: 9   },
   dt:        { label: 'Time step',    type: 'range', min: 1,  max: 15,  value: 15   },
   steps:     { label: 'Steps/tick',   type: 'range', min: 1,  max: 20,  value: 20   },
-  hue:       { label: 'Hue',          type: 'range', min: 0,  max: 360, value: 219 },
+  hue:       { label: 'Hue',          type: 'range', min: 0,  max: 360, value: 177 },
   hueSpread: { label: 'Hue spread',   type: 'range', min: 0,  max: 180, value: 180 },
 });
 

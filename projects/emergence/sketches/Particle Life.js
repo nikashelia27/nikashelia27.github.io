@@ -5,13 +5,13 @@ about({
 
 params({
   wrapEdges: { label: 'Wrap edges', type: 'checkbox', value: true },
-  countPerType: { label: 'Per-type count',   type: 'range', min: 20,  max: 1000, value: 300, reinit: true },
-  typeCount:    { label: 'Type count',        type: 'range', min: 4,   max: 36,   value: 30,  reinit: true },
+  countPerType: { label: 'Per-type count',   type: 'range', min: 20,  max: 1000, value: 544, reinit: true },
+  typeCount:    { label: 'Type count',        type: 'range', min: 4,   max: 36,   value: 20,  reinit: true },
   immuneCount:  { label: 'Immune types',      type: 'range', min: 0,   max: 8,    value: 2,   reinit: true },
   mapScale:     { label: 'Map scale',         type: 'range', min: 1,   max: 4,    value: 1,   reinit: true },
   radius:       { label: 'Force radius',      type: 'range', min: 20,  max: 200,  value: 90  },
   forceMult:    { label: 'Force strength',    type: 'range', min: 1,   max: 200,  value: 77  },
-  friction:     { label: 'Friction %',        type: 'range', min: 50,  max: 99,   value: 53  },
+  friction:     { label: 'Friction %',        type: 'range', min: 25,  max: 99,   value: 50  },
   minDist:      { label: 'Repel distance',    type: 'range', min: 1,   max: 40,   value: 13  },
   repulse:      { label: 'Repel strength',    type: 'range', min: 1,   max: 100,  value: 5   },
   outerRepel:   { label: 'Outer repel',       type: 'range', min: 0,   max: 100,  value: 5   },

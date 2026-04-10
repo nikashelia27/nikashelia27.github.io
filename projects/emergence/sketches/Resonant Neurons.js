@@ -5,7 +5,7 @@ about({
 
 params({
   wrapEdges: { label: 'Wrap edges', type: 'checkbox', value: true },
-  cellSize:      { label: 'Cell size',        type: 'range', min: 1,   max: 12,  value: 2   },
+  cellSize:      { label: 'Cell size',        type: 'range', min: 1,   max: 12,  value: 3   },
   coupling:      { label: 'Coupling',         type: 'range', min: 0,   max: 400, value: 300  },
   leak:          { label: 'Leak',             type: 'range', min: 0,   max: 100, value: 63   },
   recovery:      { label: 'Recovery',         type: 'range', min: 0,   max: 100, value: 85  },

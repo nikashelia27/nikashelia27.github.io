@@ -6,9 +6,9 @@ about({
 params({
   wrapEdges: { label: 'Wrap edges', type: 'checkbox', value: true },
   cellSize:     { label: 'Cell size',    type: 'range', min: 1,  max: 8,   value: 2,   reinit: true },
-  antCount:     { label: 'Ant count',    type: 'range', min: 1,  max: 16,  value: 5,   reinit: true },
+  antCount:     { label: 'Ant count',    type: 'range', min: 1,  max: 16,  value: 3,   reinit: true },
   stepsPerTick: { label: 'Steps/tick',   type: 'range', min: 1,  max: 500, value: 500  },
-  preset:       { label: 'Rule preset',  type: 'range', min: 0,  max: 7,   value: 0,   reinit: true },
+  preset:       { label: 'Rule preset',  type: 'range', min: 0,  max: 7,   value: 5,   reinit: true },
 });
 const ANT_RULES = [
   'RL',           // 0 — Classic: ~10k steps of chaos then infinite highway
